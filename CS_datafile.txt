@@ -1,5 +1,6 @@
 Analyze a complex computing problem and apply principles of computing and other relevant disciplines to identify solutions.
-Design, implement, and evaluate a computing-based solution to meet a given set of computing requirements in the context of the program’s discipline.
+Design, implement, and evaluate a computing-based solution to meet a given set of computing requirements in the context of the programâ€™s discipline.
 Communicate effectively in a variety of professional contexts.
 Recognize professional responsibilities and make informed judgments in computing practice based on legal and ethical principles.
-Function effectively as a member or leader of a team engaged in activities appropriate to the program’s discipline.
+Function effectively as a member or leader of a team engaged in activities appropriate to the programâ€™s discipline.
+Testing
