@@ -3,4 +3,3 @@ Design, implement, and evaluate a computing-based solution to meet a given set o
 Communicate effectively in a variety of professional contexts.
 Recognize professional responsibilities and make informed judgments in computing practice based on legal and ethical principles.
 Function effectively as a member or leader of a team engaged in activities appropriate to the program’s discipline.
-Testing

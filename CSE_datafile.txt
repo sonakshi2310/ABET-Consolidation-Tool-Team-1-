@@ -1,17 +1,10 @@
-Proposed Program Criteria for Manufacturing and Similarly Named Engineering Programs
-Lead Society: Society of Manufacturing Engineers
-These program criteria apply to engineering programs that include “manufacturing” and similar modifiers in their titles.
+Co-Lead Societies: American Society of Mechanical Engineers, CSAB, IEEE, Institute of Industrial and Systems Engineers, ISA, International Council on Systems Engineering (INCOSE), and SAE International
+These program criteria apply to engineering programs that include “systems” or “and systems” in their titles, with the exception of those that use the word “systems” with a direct modifier, such as mechanical systems, biological systems, control systems, etc.
 1. Curriculum
-The program must include curricular content in the following areas:
-
-materials and manufacturing processes: design of products, manufacturing processes, and systems that result in products that meet specific design intent, material, life cycle, and other requirements;
-process, assembly and product engineering: utilizing modern engineering equipment, tooling, and environment necessary for their manufacture;
-manufacturing competitiveness: creation of competitive advantage through advanced manufacturing technologies, manufacturing planning, strategy, quality, and control;
-manufacturing systems design: analyze, synthesize, and control manufacturing operations using statistical methods; and
-manufacturing laboratory or facility experience: measurement of manufacturing process input variables, analysis of output responses, and development of technical inferences about the process.
-
-The culminating major design experience must address a manufacturing engineering problem.
+The structure of the curriculum must provide both breadth and depth across the range of engineering topics implied by the title of the program.
+The curriculum must include the following topics:
+Advanced mathematics, including probability and statistics, and computing fundamentals, with practical applications thereof.
+Engineering topics necessary to define, synthesize, analyze, design, and evaluate complex systems containing hardware and software, and human elements (where appropriate), in a holistic manner across the lifecycle.
+Systems design and analysis topics, such as decision analysis, risk analysis (cost, schedule, and performance), trade-off analysis, optimization, modeling based engineering, simulation, sensitivity analysis techniques, or requirements engineering.
 2. Faculty
-The program must demonstrate that faculty members maintain currency in manufacturing engineering practice.
-
-Comments relative to the proposed changes should be submitted by the link for comments available here and on the Accreditation Changes section of the ABET website.
+The program shall demonstrate that those faculty members teaching courses that are primarily design in content are qualified to teach the subject matter by virtue of education and experience or professional licensure.
