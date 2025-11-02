@@ -133,12 +133,12 @@ CS_page = requests.get(CS_url)
 CS_soup = BeautifulSoup(CS_page.text, 'html')
 
 #grabbing pdf area
-CS_stud_outcome = CS_soup.find('a', class_ = 'button')
-print(CS_stud_outcome)
+CS_scrape_PDF = CS_soup.find('a', class_ = 'button')
+print(CS_scrape_PDF)
 
 
 #getting pdf part from the scraped <a class... part
-PDFpart = CS_stud_outcome["href"]
+PDFpart = CS_scrape_PDF["href"]
 print(PDFpart)
 
 #PDF: https://www.abet.org/2025-2026_cac_criteria/
