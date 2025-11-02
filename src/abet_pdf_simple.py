@@ -119,4 +119,29 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Error: {e}")
         exit(1)
+"""
+#ill probably integrate this part later
+import requests
+from bs4 import BeautifulSoup
+import numpy
 
+#getting CS ABET url here
+CS_url = 'https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-computing-programs-2025-2026/'
+
+CS_page = requests.get(CS_url)
+
+CS_soup = BeautifulSoup(CS_page.text, 'html')
+
+#grabbing pdf area
+CS_stud_outcome = CS_soup.find('a', class_ = 'button')
+print(CS_stud_outcome)
+
+
+#getting pdf part from the scraped <a class... part
+PDFpart = CS_stud_outcome["href"]
+print(PDFpart)
+
+#PDF: https://www.abet.org/2025-2026_cac_criteria/
+
+
+"""
