@@ -22,6 +22,9 @@ Requirements:
 """
 import requests
 import io
+import os
+import sys
+import difflib
 from urllib.parse import urljoin
 
 try:
@@ -181,18 +184,79 @@ def scrape_pdf_from_page(page_url: str, link_text: str = 'Download the Criteria'
     return text
 
 
+def mindiff_text_files(path_a: str, path_b: str, out_path: str = None, context: int = 3) -> str:
+    """Compute a unified diff between two text files and save to out_path.
+
+    If out_path is not provided, a filename is generated using the basenames of
+    the input files: "{base_a}+{base_b}_diff.txt".
+
+    Args:
+        path_a: Path to first text file
+        path_b: Path to second text file
+        out_path: Optional output path for the diff
+        context: Number of context lines for unified diff
+
+    Returns:
+        The path to the written diff file.
+    """
+    if not os.path.exists(path_a):
+        raise ValueError(f'File not found: {path_a}')
+    if not os.path.exists(path_b):
+        raise ValueError(f'File not found: {path_b}')
+
+    with open(path_a, 'r', encoding='utf-8', errors='replace') as fa:
+        a_lines = fa.read().splitlines()
+    with open(path_b, 'r', encoding='utf-8', errors='replace') as fb:
+        b_lines = fb.read().splitlines()
+
+    if out_path is None:
+        a_base = os.path.splitext(os.path.basename(path_a))[0]
+        b_base = os.path.splitext(os.path.basename(path_b))[0]
+        out_name = f"{a_base}+{b_base}_diff.txt"
+        out_path = os.path.join(os.path.dirname(path_a) or '.', out_name)
+
+    diff_lines = list(difflib.unified_diff(a_lines, b_lines,
+                                           fromfile=path_a,
+                                           tofile=path_b,
+                                           n=context,
+                                           lineterm=''))
+
+    with open(out_path, 'w', encoding='utf-8') as out_f:
+        if not diff_lines:
+            out_f.write('')
+        else:
+            out_f.write('\n'.join(diff_lines))
+
+    return out_path
+
+
 if __name__ == '__main__':
     import argparse
     
-    parser = argparse.ArgumentParser(description='Download and extract text from a PDF')
-    parser.add_argument('url', help='PDF URL or webpage URL')
+    parser = argparse.ArgumentParser(description='Download/extract text from a PDF or compare two text files')
+    parser.add_argument('url', nargs='?', help='PDF URL or webpage URL (leave empty when using --mindiff)')
     parser.add_argument('--output', '-o', help='Output text file (optional)', default=None)
     parser.add_argument('--save-pdf', '-p', help='Save PDF file (optional)', default=None)
     parser.add_argument('--from-page', '-f', action='store_true', 
                        help='URL is a webpage, not direct PDF link')
+    # mindiff options
+    parser.add_argument('--mindiff', nargs=2, metavar=('OLD', 'NEW'),
+                        help='Compare two text files and write a unified diff to a file')
+    parser.add_argument('--diff-output', '-d', help='Output diff filename (optional)')
+    parser.add_argument('--diff-context', '-c', type=int, default=3,
+                        help='Number of context lines to show in the diff (default: 3)')
     args = parser.parse_args()
     
     try:
+        # If mindiff requested, handle and exit
+        if args.mindiff:
+            old, new = args.mindiff
+            out = args.diff_output
+            print(f'Computing diff between "{old}" and "{new}"...')
+            diff_path = mindiff_text_files(old, new, out_path=out, context=args.diff_context)
+            print(f'Diff written to: {diff_path}')
+            sys.exit(0)
+
         if args.from_page:
             print(f"Scraping PDF from webpage: {args.url}...")
             text = scrape_pdf_from_page(args.url, save_pdf=args.save_pdf)
@@ -221,4 +285,10 @@ python abet_pdf_simple.py "https://www.abet.org/accreditation/accreditation-crit
 
 For Engineering programs:
 python abet_pdf_simple.py "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/" --from-page -o eac_criteria.txt
+
+# Compare two text files and write diff (auto-generated filename):
+python3 src/abet_pdf_simple.py --mindiff path/to/old.txt path/to/new.txt
+
+# Provide an explicit output filename and set context lines:
+python3 src/abet_pdf_simple.py --mindiff old.txt new.txt --diff-output old+new_diff.txt --diff-context 5
 '''
