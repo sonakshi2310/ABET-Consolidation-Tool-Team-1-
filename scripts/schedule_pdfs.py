@@ -1,242 +1,133 @@
-"""Schedule PDF Fetcher - Set up automatic PDF fetching
+"""Schedule PDF fetcher with cron
 
-QUICK START:
-    # Show setup instructions
-    python scripts/schedule_pdfs.py
-
-    # Generate cron command
-    python scripts/schedule_pdfs.py --cron
-
-    # Generate systemd timer files
-    python scripts/schedule_pdfs.py --systemd
-
-USAGE:
-    This script helps you set up automatic scheduling for fetch_pdfs.py.
-    It generates the commands/files you need for cron, systemd, or Windows Task Scheduler.
-
-SCHEDULING OPTIONS:
-    1. Cron (Linux/Mac) - Recommended for simple scheduling
-    2. Systemd Timer (Linux) - Recommended for Linux servers
-    3. Windows Task Scheduler - For Windows servers
-    4. GitHub Actions - For cloud-based scheduling
-
-EXAMPLES:
-    # Monthly on 1st at 9 AM (default)
-    python scripts/schedule_pdfs.py --cron
-
-    # Weekly on Mondays at 9 AM
-    python scripts/schedule_pdfs.py --cron --weekly
-
-    # Daily at 9 AM
-    python scripts/schedule_pdfs.py --cron --daily
-
-    # Custom schedule
-    python scripts/schedule_pdfs.py --cron --time "14:30" --day 1  # 1st of month at 2:30 PM
+Usage:
+    python scripts/schedule_pdfs.py --add --time "19:00"    # Add cron job (7 PM daily)
+    python scripts/schedule_pdfs.py --add --time "09:00" --monthly  # Monthly at 9 AM
+    python scripts/schedule_pdfs.py --remove                # Remove cron job
+    python scripts/schedule_pdfs.py --show                  # Show current cron
 """
 import os
 import sys
 import argparse
-from pathlib import Path
+import subprocess
+import tempfile
+
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+SCRIPT_PATH = os.path.join(PROJECT_PATH, 'scripts', 'fetch_pdfs.py')
+PYTHON_PATH = sys.executable
+CRON_COMMENT = "# ABET PDF Fetcher"
 
 
-def get_project_path():
-    """Get the absolute path to the project root."""
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.dirname(script_dir)
-
-
-def get_python_path():
-    """Get the Python executable path."""
-    return sys.executable
-
-
-def generate_cron_command(time: str = "09:00", day: int = None, weekly: bool = False, daily: bool = False):
-    """Generate cron command.
-    
-    Args:
-        time: Time in HH:MM format (24-hour)
-        day: Day of month (1-31) for monthly, or day of week (0-7, 0=Sunday) for weekly
-        weekly: If True, schedule weekly
-        daily: If True, schedule daily
-    """
-    project_path = get_project_path()
-    python_path = get_python_path()
-    script_path = os.path.join(project_path, 'scripts', 'fetch_pdfs.py')
-    
+def get_cron_entry(time: str, monthly: bool = False, weekly: bool = False, day: int = None):
     hour, minute = time.split(':')
-    
-    if daily:
-        # Daily: minute hour * * *
-        cron_expr = f"{minute} {hour} * * *"
-        description = "daily"
+    if monthly:
+        day_str = str(day) if day else "1"
+        cron_expr = f"{minute} {hour} {day_str} * *"
     elif weekly:
-        # Weekly: minute hour * * day
-        day_of_week = day if day is not None else 1  # Default to Monday
-        cron_expr = f"{minute} {hour} * * {day_of_week}"
-        description = f"weekly on day {day_of_week}"
+        day_str = str(day) if day else "1"  # Monday
+        cron_expr = f"{minute} {hour} * * {day_str}"
     else:
-        # Monthly: minute hour day * *
-        day_of_month = day if day is not None else 1  # Default to 1st
-        cron_expr = f"{minute} {hour} {day_of_month} * *"
-        description = f"monthly on day {day_of_month}"
-    
-    command = f'cd {project_path} && {python_path} {script_path} >> logs/cron.log 2>&1'
-    
-    return cron_expr, command, description
+        cron_expr = f"{minute} {hour} * * *"  # Daily
+    command = f'cd {PROJECT_PATH} && {PYTHON_PATH} {SCRIPT_PATH} >> {PROJECT_PATH}/logs/cron.log 2>&1'
+    return f"{cron_expr} {command} {CRON_COMMENT}"
 
 
-def generate_systemd_files(time: str = "09:00", day: int = None, weekly: bool = False, daily: bool = False):
-    """Generate systemd service and timer files."""
-    project_path = get_project_path()
-    python_path = get_python_path()
-    script_path = os.path.join(project_path, 'scripts', 'fetch_pdfs.py')
+def add_cron(time: str, monthly: bool, weekly: bool, day: int):
+    entry = get_cron_entry(time, monthly, weekly, day)
     
-    # Service file
-    service_content = f"""[Unit]
-Description=ABET PDF Fetcher
-After=network.target
-
-[Service]
-Type=oneshot
-User={os.getenv('USER', 'your-user')}
-WorkingDirectory={project_path}
-ExecStart={python_path} {script_path}
-StandardOutput=journal
-StandardError=journal
-"""
+    # Get current crontab
+    try:
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+        crontab = result.stdout
+    except:
+        crontab = ""
     
-    # Timer file
-    if daily:
-        on_calendar = f"*-*-* {time}:00"
-        description = "daily"
-    elif weekly:
-        day_name = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][day if day is not None else 1]
-        on_calendar = f"{day_name} {time}:00"
-        description = f"weekly on {day_name}"
-    else:
-        day_of_month = day if day is not None else 1
-        on_calendar = f"*-*-{day_of_month:02d} {time}:00"
-        description = f"monthly on day {day_of_month}"
+    # Remove old entry if exists
+    lines = [l for l in crontab.split('\n') if CRON_COMMENT not in l and l.strip()]
     
-    timer_content = f"""[Unit]
-Description=ABET PDF Fetcher Timer
-Requires=abet-pdf-fetcher.service
-
-[Timer]
-OnCalendar={on_calendar}
-
-[Install]
-WantedBy=timers.target
-"""
+    # Add new entry
+    lines.append(entry)
+    new_crontab = '\n'.join(lines) + '\n'
     
-    return service_content, timer_content, description
+    # Install new crontab
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        f.write(new_crontab)
+        temp_path = f.name
+    
+    try:
+        subprocess.run(['crontab', temp_path], check=True)
+        print(f"✓ Cron job added: {entry}")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Error adding cron: {e}")
+        return False
+    finally:
+        os.unlink(temp_path)
 
 
-def print_setup_instructions():
-    """Print setup instructions for all scheduling methods."""
-    project_path = get_project_path()
-    python_path = get_python_path()
+def remove_cron():
+    try:
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+        crontab = result.stdout
+    except:
+        print("No crontab found")
+        return False
     
-    print("=" * 70)
-    print("PDF FETCHER SCHEDULING SETUP")
-    print("=" * 70)
-    print()
+    lines = [l for l in crontab.split('\n') if CRON_COMMENT not in l and l.strip()]
+    new_crontab = '\n'.join(lines) + '\n' if lines else ''
     
-    print("OPTION 1: Cron (Linux/Mac) - Simplest")
-    print("-" * 70)
-    print("1. Edit crontab:")
-    print("   crontab -e")
-    print()
-    print("2. Add one of these lines:")
-    print()
-    print("   # Monthly on 1st at 9 AM:")
-    cron_expr, command, _ = generate_cron_command()
-    print(f"   {cron_expr} {command}")
-    print()
-    print("   # Weekly on Mondays at 9 AM:")
-    cron_expr, command, _ = generate_cron_command(weekly=True)
-    print(f"   {cron_expr} {command}")
-    print()
-    print("   # Daily at 9 AM:")
-    cron_expr, command, _ = generate_cron_command(daily=True)
-    print(f"   {cron_expr} {command}")
-    print()
+    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+        f.write(new_crontab)
+        temp_path = f.name
     
-    print("OPTION 2: Systemd Timer (Linux)")
-    print("-" * 70)
-    print("1. Run this script with --systemd to generate files")
-    print("2. Copy service file to /etc/systemd/system/abet-pdf-fetcher.service")
-    print("3. Copy timer file to /etc/systemd/system/abet-pdf-fetcher.timer")
-    print("4. Enable and start:")
-    print("   sudo systemctl enable abet-pdf-fetcher.timer")
-    print("   sudo systemctl start abet-pdf-fetcher.timer")
-    print()
-    
-    print("OPTION 3: Windows Task Scheduler")
-    print("-" * 70)
-    print("1. Open Task Scheduler")
-    print("2. Create Basic Task")
-    print("3. Set trigger (e.g., monthly on 1st at 9 AM)")
-    print("4. Set action:")
-    print(f"   Program: {python_path}")
-    print(f"   Arguments: {os.path.join(project_path, 'scripts', 'fetch_pdfs.py')}")
-    print(f"   Start in: {project_path}")
-    print()
-    
-    print("OPTION 4: Test Manually")
-    print("-" * 70)
-    print(f"python {os.path.join(project_path, 'scripts', 'fetch_pdfs.py')}")
-    print()
-    print("=" * 70)
+    try:
+        subprocess.run(['crontab', temp_path], check=True)
+        print("✓ Cron job removed")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"✗ Error removing cron: {e}")
+        return False
+    finally:
+        os.unlink(temp_path)
+
+
+def show_cron():
+    try:
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+        crontab = result.stdout
+        if CRON_COMMENT in crontab:
+            for line in crontab.split('\n'):
+                if CRON_COMMENT in line:
+                    print(line)
+        else:
+            print("No cron job found")
+    except:
+        print("No crontab found")
 
 
 def main():
-    """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description='Set up automatic scheduling for PDF fetcher',
-        formatter_class=argparse.RawDescriptionHelpFormatter
-    )
-    parser.add_argument('--cron', action='store_true', help='Generate cron command')
-    parser.add_argument('--systemd', action='store_true', help='Generate systemd files')
-    parser.add_argument('--time', default='09:00', help='Time in HH:MM format (default: 09:00)')
-    parser.add_argument('--day', type=int, help='Day of month (1-31) or day of week (0-7)')
-    parser.add_argument('--weekly', action='store_true', help='Schedule weekly instead of monthly')
-    parser.add_argument('--daily', action='store_true', help='Schedule daily')
+    parser = argparse.ArgumentParser(description='Schedule PDF fetcher')
+    parser.add_argument('--add', action='store_true', help='Add cron job')
+    parser.add_argument('--remove', action='store_true', help='Remove cron job')
+    parser.add_argument('--show', action='store_true', help='Show current cron')
+    parser.add_argument('--time', default='09:00', help='Time (HH:MM, default: 09:00)')
+    parser.add_argument('--monthly', action='store_true', help='Run monthly')
+    parser.add_argument('--weekly', action='store_true', help='Run weekly')
+    parser.add_argument('--day', type=int, help='Day of month/week (1-31 or 0-7)')
     args = parser.parse_args()
     
-    if args.cron:
-        cron_expr, command, description = generate_cron_command(
-            args.time, args.day, args.weekly, args.daily
-        )
-        print(f"Cron expression ({description} at {args.time}):")
-        print(f"  {cron_expr} {command}")
-        print()
-        print("Add this to your crontab (crontab -e):")
-        print(f"  {cron_expr} {command}")
-        
-    elif args.systemd:
-        service_content, timer_content, description = generate_systemd_files(
-            args.time, args.day, args.weekly, args.daily
-        )
-        print(f"Systemd files ({description} at {args.time}):")
-        print()
-        print("Service file (save as /etc/systemd/system/abet-pdf-fetcher.service):")
-        print("-" * 70)
-        print(service_content)
-        print()
-        print("Timer file (save as /etc/systemd/system/abet-pdf-fetcher.timer):")
-        print("-" * 70)
-        print(timer_content)
-        print()
-        print("Then run:")
-        print("  sudo systemctl enable abet-pdf-fetcher.timer")
-        print("  sudo systemctl start abet-pdf-fetcher.timer")
-        
+    if args.add:
+        add_cron(args.time, args.monthly, args.weekly, args.day)
+    elif args.remove:
+        remove_cron()
+    elif args.show:
+        show_cron()
     else:
-        # Show all options
-        print_setup_instructions()
+        print("Use --add to add, --remove to remove, or --show to view cron job")
+        print(f"Example: python scripts/schedule_pdfs.py --add --time 19:00")
 
 
 if __name__ == '__main__':
     main()
-
