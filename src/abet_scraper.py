@@ -1,144 +1,170 @@
-"""ABET accreditation pages scraper utilities.
+#install:
+#pip install pypdf requests
+#pip install beautifulsoup4
 
-Provides small, testable functions to fetch a page, parse accordion entries
-and extract sections between H2 headers. Designed to consolidate the logic
-from the notebooks into a reusable module.
-
-Contracts (short):
-- fetch_page(url) -> str: HTML text or raises requests.HTTPError on non-200.
-- parse_accordion_items(html) -> list[dict]: each dict has 'title' and 'html'.
-- extract_between_h2(html, start_id, end_id=None) -> str: HTML between headers.
-
-Error modes: network timeouts, missing elements return empty lists/strings.
-"""
-from typing import List, Dict, Optional
 import requests
+import io
+#import os
+#import sys
+import difflib
+from urllib.parse import urljoin
 from bs4 import BeautifulSoup
+from pypdf import PdfReader
+import PyPDF2
 
+#gets the pdf from the url
+def get_pdf_from_url(url: str, timeout: int = 30) -> bytes:
 
-def fetch_page(url: str, timeout: int = 10) -> str:
-    """Fetch a URL and return the page HTML as text.
-
-    Raises requests.RequestException on network errors and requests.HTTPError
-    if a non-200 status code is returned.
-    """
-    resp = requests.get(url, timeout=timeout)
+    resp = requests.get(url, timeout=timeout, allow_redirects=True)
     resp.raise_for_status()
-    return resp.text
+    return resp.content
+
+#parses through pdf and saves the text into a list
+def read_pdf_text(pdf_bytes: bytes) -> str:
+
+    if PdfReader is None:
+        raise ImportError(
+            "PDF library required. Install with: pip install pypdf"
+        )
+    
+    pdf_file = io.BytesIO(pdf_bytes)
+    reader = PdfReader(pdf_file)
+    
+    text_parts = []
+    for page in reader.pages:
+        text = page.extract_text()
+        text_parts.append(text)
+    
+    return '\n'.join(text_parts)
 
 
-def parse_accordion_items(html: str) -> List[Dict[str, str]]:
-    """Parse accordion items (<li class="block-accordion-item">) from HTML.
 
-    Returns a list of dicts: { 'title': <header text>, 'html': <inner html> }
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    items = []
-    for li in soup.find_all('li', class_='block-accordion-item'):
-        title_tag = li.find('h4', class_='accordion-header')
-        title = title_tag.get_text(strip=True) if title_tag else ''
-        # The inner content may be under a div with class 'accordion-content'
-        content_div = li.find('div', class_='accordion-content')
-        inner_html = content_div.decode_contents() if content_div else li.decode_contents()
-        items.append({'title': title, 'html': inner_html})
-    return items
+#this function scrapes the pdf link from the page and returns the link as a string
+def find_pdf_url_on_page(page_url: str, link_text: str = 'Download the criteria') -> str:
 
 
-def extract_between_h2(html: str, start_id: str, end_id: Optional[str] = None) -> str:
-    """Extract HTML content between the H2 with id=start_id up to (but not including)
-    the H2 with id=end_id. If end_id is None, extracts until the next H2 or end.
-
-    Returns the concatenated inner HTML (as a string). If start header not found,
-    returns an empty string.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    start = soup.find('h2', id=str(start_id))
-    if not start:
-        return ''
-    content = []
-    sibling = start.find_next_sibling()
-    while sibling:
-        if sibling.name == 'h2' and end_id is not None and sibling.get('id') == str(end_id):
-            break
-        # stop if we reach the next h2 when end_id is None
-        if sibling.name == 'h2' and end_id is None:
-            break
-        content.append(str(sibling))
-        sibling = sibling.find_next_sibling()
-    return ''.join(content)
+    
+    #scrapes the webpage
+    response = requests.get(page_url)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'html.parser')
+    print("FDHSKJFLDS")
 
 
-def save_text_lines(lines: List[str], filepath: str) -> None:
-    """Save a list of strings to a text file (one per line)."""
-    with open(filepath, 'w', encoding='utf-8') as f:
-        for line in lines:
-            f.write(line.rstrip('\n') + '\n')
+    #dont think this is needed?
+    #download_link = soup.find('a', string=lambda text: text and link_text in text)
+    #print(download_link)
+    #if download_link and download_link.get('href'):
+    #    pdf_url = urljoin(page_url, download_link['href'])
+    #    return pdf_url
+    
+    getlink = 'Download the Criteria'
+    #scrapes link from the website
 
+    #pdf links are different from cs and cse in the html structure so this checks for href, getting all lowercase for string lambda bypasses weird navigation thing
+    button_link = soup.find("a", href=True, string=lambda s: s and getlink.lower() in s.lower())
 
-def extract_text_from_html(html: str) -> List[str]:
-    """Return a cleaned list of text lines extracted from a fragment of HTML.
+    #gets cs link
+    #soup.find('a', class_='button')
+    print(button_link)
+    #button_link = soup.find('a', string= link_text)
+   
+    if button_link and button_link.get('href'):
+        pdf_url = urljoin(page_url, button_link['href'])
+        
+       
+        return pdf_url
+    
+    raise ValueError(f"Could not find PDF download link on page: {page_url}")
 
-    Strips empty lines and returns sequential text nodes.
-    """
-    soup = BeautifulSoup(html, 'html.parser')
-    texts = [t.strip() for t in soup.stripped_strings]
-    return [t for t in texts if t]
+#this function scrapes the pdf from the ABET page and extracts the text and returns it as a string
+def scrape_pdf_from_page(page_url: str, link_text: str = 'Download the Criteria', 
+                          save_pdf: str = None) -> str:
 
+    # Find the PDF URL
+    print(f"Searching for PDF link onn {page_url}")
+    pdf_url = find_pdf_url_on_page(page_url, link_text)
+    print(f"Found PDF: {pdf_url}")
+    
+    # Download the PDF
+    print("Downloading PDF")
+    pdf_bytes = get_pdf_from_url(pdf_url)
+    
+    #save the PDF
+    if save_pdf:
+        with open(save_pdf, 'wb') as f:
+            f.write(pdf_bytes)
+        print(f"PDF saved to {save_pdf}")
+    
+    # Extract text
+    print("getting text")
+    text = read_pdf_text(pdf_bytes)
+    
+    return text
 
-def extract_first_ol_by_style(html: str, style_substring: str) -> List[str]:
-    """Find the first <ol> whose style attribute contains style_substring
-    and return its list item texts. If not found, return an empty list."""
-    soup = BeautifulSoup(html, 'html.parser')
-    ol = soup.find('ol', style=lambda s: s and style_substring in s)
-    if not ol:
-        return []
-    return [li.get_text(strip=True) for li in ol.find_all('li')]
+#not needed? since already being used in email code?
+#min diff function for comparing two txt files and showing the changes
+"""def mindiff_text_files(path_a: str, path_b: str, out_path: str = None, context: int = 3) -> str:
 
+    if not os.path.exists(path_a):
+        raise ValueError(f'File not found: {path_a}')
+    if not os.path.exists(path_b):
+        raise ValueError(f'File not found: {path_b}')
 
-def find_ol_after_heading(html: str, heading_tag: str = 'h3', heading_id: Optional[str] = None,
-                           heading_text_substring: Optional[str] = None) -> List[str]:
-    """Find the first ordered list (<ol>) that appears after a heading.
+    with open(path_a, 'r', encoding='utf-8', errors='replace') as fa:
+        a_lines = fa.read().splitlines()
+    with open(path_b, 'r', encoding='utf-8', errors='replace') as fb:
+        b_lines = fb.read().splitlines()
 
-    You can identify the heading either by id (heading_id) or by a substring of
-    the heading text (heading_text_substring). Returns list of li texts or [] if
-    not found.
-    """
-    soup = BeautifulSoup(html, 'html.parser')
-    heading = None
-    if heading_id:
-        heading = soup.find(heading_tag, id=str(heading_id))
-    elif heading_text_substring:
-        # find heading with matching text
-        for h in soup.find_all(heading_tag):
-            if h.get_text(strip=True) and heading_text_substring in h.get_text(strip=True):
-                heading = h
-                break
-    if not heading:
-        return []
-    # find next ol sibling or descendant after heading
-    sib = heading.find_next_sibling()
-    while sib:
-        if sib.name == 'ol':
-            return [li.get_text(strip=True) for li in sib.find_all('li')]
-        # sometimes the ol is nested inside a div or other wrapper
-        ol = sib.find('ol')
-        if ol:
-            return [li.get_text(strip=True) for li in ol.find_all('li')]
-        sib = sib.find_next_sibling()
-    return []
+    if out_path is None:
+        a_base = os.path.splitext(os.path.basename(path_a))[0]
+        b_base = os.path.splitext(os.path.basename(path_b))[0]
+        out_name = f"{a_base}+{b_base}_diff.txt"
+        out_path = os.path.join(os.path.dirname(path_a) or '.', out_name)
 
+    diff_lines = list(difflib.unified_diff(a_lines, b_lines,
+                                           fromfile=path_a,
+                                           tofile=path_b,
+                                           n=context,
+                                           lineterm=''))
+
+    with open(out_path, 'w', encoding='utf-8') as out_f:
+        if not diff_lines:
+            out_f.write('')
+        else:
+            out_f.write('\n'.join(diff_lines))
+
+    return out_path
+"""
 
 if __name__ == '__main__':
-    # Simple CLI usage example (kept minimal so it can be used in notebooks or scripts)
-    import argparse
 
-    parser = argparse.ArgumentParser(description='Simple ABET page scraper utilities')
-    parser.add_argument('url', help='ABET URL to fetch')
-    parser.add_argument('--out', help='Output text file for extracted accordion titles', default='output.txt')
-    args = parser.parse_args()
 
-    html = fetch_page(args.url)
-    items = parse_accordion_items(html)
-    titles = [it['title'] for it in items]
-    save_text_lines(titles, args.out)
-    print(f'Wrote {len(titles)} accordion titles to {args.out}')
+    CS_url = "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-computing-programs-2025-2026/"
+    CS_text = "cs_criteria.txt"
+    CSE_url = "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/"
+    CSE_text = "cse_criteria.txt"
+    save_pdf = ""
+
+
+    #scrape cs pdf into txt file
+    print(f"Scraping PDF from webpage: {CS_url}")
+    text = scrape_pdf_from_page(CS_url, save_pdf)
+
+    with open(CS_text, 'w', encoding='utf-8') as f:
+        f.write(text)
+    print(f"Text saved to {CS_text}")
+
+
+
+    #scrape cse pdf into txt file
+    print(f"Scraping PDF from webpage: {CSE_url}")
+    text = scrape_pdf_from_page(CSE_url, save_pdf)
+
+    with open(CSE_text, 'w', encoding='utf-8') as f:
+        f.write(text)
+    print(f"Text saved to {CS_text}")
+   
+
+
+
