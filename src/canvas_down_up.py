@@ -87,8 +87,7 @@ def upload_file(course_id: str, folder_name: str, file_path: str) -> None:
 
 if __name__ == '__main__':
     """
-    Example test function to demonstrate diff_files().
-    Update the paths below to your actual C# file locations.
+    Example
     """
     download_file(COURSE_ID, FOLDER_NAME, FILE_NAME, DESTINATION_PATH)
     upload_file(COURSE_ID, FOLDER_NAME, DESTINATION_PATH)
