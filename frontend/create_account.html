@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABET Tools - Create Account</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f5f5f5;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus {
+            outline: none;
+            border-color: #8C1D40;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: #8C1D40;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(140, 29, 64, 0.4);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .link a {
+            color: #8C1D40;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .link a:hover {
+            text-decoration: underline;
+        }
+        
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        .error {
+            border-color: #dc3545 !important;
+        }
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">
+            <h1>ABET Tools</h1>
+            <p class="subtitle">Create your account</p>
+        </div>
+        
+        <div class="info-box">
+            You must use an ASU email address (@asu.edu) to create an account.
+        </div>
+        
+        <!-- Create Account Form -->
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required minlength="3">
+                <span class="error-message" id="username-error">Username must be at least 3 characters</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">ASU Email</label>
+                <input type="email" id="email" name="email" required placeholder="yourname@asu.edu">
+                <span class="error-message" id="email-error">Please enter a valid @asu.edu email address</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required minlength="6">
+                <span class="error-message" id="password-error">Password must be at least 6 characters</span>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm_password" required minlength="6">
+                <span class="error-message" id="confirm-error">Passwords do not match</span>
+            </div>
+            
+            <button type="submit" class="btn">Create Account</button>
+            
+            <div class="link">
+                <a href="loginpage.html">Already have an account? Sign in</a>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        const signupForm = document.getElementById('signupForm');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirm-password');
+        
+        // Function to validate ASU email
+        function isValidASUEmail(email) {
+            return email.toLowerCase().endsWith('@asu.edu');
+        }
+        
+        // Function to show error
+        function showError(inputElement, errorElement) {
+            inputElement.classList.add('error');
+            errorElement.classList.add('show');
+        }
+        
+        // Function to hide error
+        function hideError(inputElement, errorElement) {
+            inputElement.classList.remove('error');
+            errorElement.classList.remove('show');
+        }
+        
+        // Real-time email validation
+        emailInput.addEventListener('blur', function() {
+            const email = emailInput.value.trim();
+            const errorElement = document.getElementById('email-error');
+            
+            if (email && !isValidASUEmail(email)) {
+                showError(emailInput, errorElement);
+            } else {
+                hideError(emailInput, errorElement);
+            }
+        });
+        
+        // Real-time password confirmation
+        confirmPasswordInput.addEventListener('input', function() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            const errorElement = document.getElementById('confirm-error');
+            
+            if (confirmPassword && password !== confirmPassword) {
+                showError(confirmPasswordInput, errorElement);
+            } else {
+                hideError(confirmPasswordInput, errorElement);
+            }
+        });
+        
+        // Form submission
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get values
+            const username = usernameInput.value.trim();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            // Clear all errors first
+            hideError(usernameInput, document.getElementById('username-error'));
+            hideError(emailInput, document.getElementById('email-error'));
+            hideError(passwordInput, document.getElementById('password-error'));
+            hideError(confirmPasswordInput, document.getElementById('confirm-error'));
+            
+            let isValid = true;
+            
+            // Validate username
+            if (username.length < 3) {
+                showError(usernameInput, document.getElementById('username-error'));
+                isValid = false;
+            }
+            
+            // Validate ASU email
+            if (!isValidASUEmail(email)) {
+                showError(emailInput, document.getElementById('email-error'));
+                isValid = false;
+            }
+            
+            // Validate password length
+            if (password.length < 6) {
+                showError(passwordInput, document.getElementById('password-error'));
+                isValid = false;
+            }
+            
+            // Validate password match
+            if (password !== confirmPassword) {
+                showError(confirmPasswordInput, document.getElementById('confirm-error'));
+                isValid = false;
+            }
+            
+            // If all validations pass
+            if (isValid) {
+                // Store account information (in a real app, this would go to a server)
+                // For now, just save to localStorage
+                const accountData = {
+                    username: username,
+                    email: email,
+                    password: password // NOTE: Never store passwords in plain text in a real application!
+                };
+                
+                // Save to localStorage
+                localStorage.setItem('asuAccount', JSON.stringify(accountData));
+                
+                // Show success message
+                alert('Account created successfully! You can now sign in.');
+                
+                // Redirect to sign-in page
+                window.location.href = 'loginpage.html';
+            }
+        });
+    </script>
+</body>
+</html>
