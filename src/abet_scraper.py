@@ -4,13 +4,22 @@
 
 import requests
 import io
-#import os
+import os
+import smtplib #for email sending
+from email.message import EmailMessage
 #import sys
 import difflib
 from urllib.parse import urljoin
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 import PyPDF2
+import email_auto
+
+
+
+
+#scraper part
+########################################################################
 
 #gets the pdf from the url
 def get_pdf_from_url(url: str, timeout: int = 30) -> bytes:
@@ -136,13 +145,34 @@ def scrape_pdf_from_page(page_url: str, link_text: str = 'Download the Criteria'
 
     return out_path
 """
+def getlink(section_name):
+
+    #grabs the url before criteria page incase url changes
+    test = "https://www.abet.org/accreditation/accreditation-criteria/"
+    response = requests.get(test)
+    response.raise_for_status()
+    soup = BeautifulSoup(response.text, 'html.parser')
+
+    #extracts all the urls on the abet page and filters based on section name to grab course criteria link
+    for i in soup.find_all('a'):
+        if (section_name in str(i.get('href'))):
+            print(i.get('href'))
+            return str(i.get('href'))
+            
 
 if __name__ == '__main__':
 
+    
+    
+    #hard coded url links
+    #CS_url = "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-computing-programs-2025-2026/"
+    #CSE_url = "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/"
+    
+    #in case links change checks for substring in url to grab course criteria links
+    CS_url = getlink("criteria-for-accrediting-computing-programs")
+    CSE_url = getlink("criteria-for-accrediting-engineering-programs")
 
-    CS_url = "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-computing-programs-2025-2026/"
     CS_text = "cs_criteria.txt"
-    CSE_url = "https://www.abet.org/accreditation/accreditation-criteria/criteria-for-accrediting-engineering-programs-2025-2026/"
     CSE_text = "cse_criteria.txt"
     save_pdf = ""
 
@@ -164,6 +194,12 @@ if __name__ == '__main__':
     with open(CSE_text, 'w', encoding='utf-8') as f:
         f.write(text)
     print(f"Text saved to {CS_text}")
+
+    """
+    Example test function to demonstrate diff_files().
+    Update the paths below to your actual C# file locations.
+    """
+    email_auto.runprog()
    
 
 
