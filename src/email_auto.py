@@ -3,8 +3,8 @@ import os
 import smtplib #for email sending
 from email.message import EmailMessage
 import difflib
-from dotenv import load_dotenv
-load_dotenv()
+#from dotenv import load_dotenv
+#load_dotenv()
 
 import smtplib
 from email.message import EmailMessage
@@ -13,15 +13,14 @@ from email.message import EmailMessage
 import requests
 import sys
 
+
+
 #Configurations of the two files to compare
-OLD_FILE_CS = "src/cs_criteria.txt"
-NEW_FILE_CS = "src/new_cs_criteria.txt"
+OLD_FILE_CS = "cs_criteria.txt"
+NEW_FILE_CS = "new_cs_criteria.txt"
 
+#need access to env file refer to cpanel configuration
 
-SMTP_HOST = os.getenv("SMTP_HOST", "").strip()
-SMTP_PORT = int(os.getenv("SMTP_PORT", "465").strip() or 465)                         
-EMAIL_SENDER = os.getenv("EMAIL_SENDER", "").strip()
-PASSWORD = os.getenv("PASSWORD", "").strip()   
 
 
 def diff_files(old_file_path: str, new_file_path: str) -> None:
@@ -51,7 +50,7 @@ def diff_files(old_file_path: str, new_file_path: str) -> None:
         msg = EmailMessage()
         msg['Subject'] = 'CS Datafile Changes Detected'
         msg['From'] = EMAIL_SENDER
-        msg['To'] = "thaituan@asu.edu"
+        msg['To'] = "mgoisman@asu.edu"
         msg.set_content(f"The following changes were detected between the old and new CS data files:\n\n{diff_text}" + __import__('datetime').datetime.now().isoformat())
 
         try:
@@ -61,13 +60,15 @@ def diff_files(old_file_path: str, new_file_path: str) -> None:
             print("Email sent to thaituan@asu.edu")
         except Exception as e:
             print(f"Error sending email: {e}")
+def runprog():
+    diff_files(OLD_FILE_CS, NEW_FILE_CS)
 
 if __name__ == '__main__':
     """
     Example test function to demonstrate diff_files().
     Update the paths below to your actual C# file locations.
     """
-    diff_files(OLD_FILE_CS, NEW_FILE_CS)
+    runprog()
 
 
 #How to use:
