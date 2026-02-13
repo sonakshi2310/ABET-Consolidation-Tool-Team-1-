@@ -123,6 +123,21 @@ def get_course_code(js: Dict[str, Any]) -> str:
     return str(ci.get("course_code") or "N/A").strip()
 
 
+def get_enrollment_count(js: Dict[str, Any]) -> int:
+    ci = js.get("course_info") or js.get("course_identification") or {}
+    enrollments = ci.get("enrollments", [])
+    if isinstance(enrollments, list):
+        for enrollment in enrollments:
+            if isinstance(enrollment, dict) and enrollment.get("type") == "student":
+                amount = enrollment.get("amount")
+                if amount is not None:
+                    try:
+                        return int(amount)
+                    except (ValueError, TypeError):
+                        pass
+    return 0
+
+
 def normalize_course_line_for_template(course_code: str) -> str:
     """
     Template wants: 'CSE # 301'
@@ -397,6 +412,9 @@ def update_section1_in_doc(doc: Document, js: Dict[str, Any], feedback_text: Opt
     metric_line = f"Metric Instrument Type: {infer_metric_instrument_type(js)}"
     thr = get_threshold(js)
 
+    enrollment_count = get_enrollment_count(js)
+    enrollment_line = f"Class Enrollment: {enrollment_count} students"
+
     overall = get_overall_summary(js)
     sample_size = overall.get("sample_size", "N/A")
     number_comp = overall.get("number_competent", "N/A")
@@ -439,6 +457,10 @@ def update_section1_in_doc(doc: Document, js: Dict[str, Any], feedback_text: Opt
 
         if t.startswith("Metric Instrument Type:"):
             replace_paragraph_text_preserve_style(p, metric_line)
+            continue
+
+        if t.startswith("Class Enrollment:"):
+            replace_paragraph_text_preserve_style(p, enrollment_line)
             continue
 
         if t.startswith("To show competency, a student must score at least"):
