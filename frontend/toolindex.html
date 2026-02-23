@@ -41,10 +41,33 @@
       font-size: 1.25rem;
     }
 
+    .header-actions {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
     .nav-link {
       color: rgba(255,255,255,0.9);
       text-decoration: none;
       font-size: 0.9rem;
+    }
+
+    .btn-header {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: background 0.2s;
+      border: 1px solid rgba(255,255,255,0.3);
+      white-space: nowrap;
+    }
+
+    .btn-header:hover {
+      background: rgba(255,255,255,0.25);
     }
 
     /* Main Container */
@@ -278,37 +301,7 @@
       border-color: var(--asu-maroon);
     }
 
-    /* Alert Box */
-    .alert-box {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      border-left: 4px solid #ffc107;
-      padding: 15px 20px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .alert-icon {
-      font-size: 1.5rem;
-    }
-
-    .alert-content {
-      flex: 1;
-    }
-
-    .alert-title {
-      font-weight: 700;
-      margin-bottom: 3px;
-    }
-
-    .alert-text {
-      font-size: 0.9rem;
-      color: var(--text-dark);
-    }
-
+    
     /* Section Header */
     .section-header {
       padding: 20px;
@@ -355,37 +348,15 @@
       display: none;
     }
 
-    .alert-close {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      color: #b08d00;
-      cursor: pointer;
-      padding: 0;
-      width: 30px;
-      height: 30px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      transition: background 0.2s;
-    }
-
-    .alert-close:hover {
-      background: rgba(0, 0, 0, 0.1);
-    }
-
-    .alert-hidden {
-      display: none;
-    }
-
   </style>
 </head>
 <body>
 
   <header class="site-header">
     <div class="site-title">ABET Tools</div>
-    <a href="/home" class="nav-link">← Back to Dashboard</a>
+    <div class="header-actions">
+      <a href="/home" class="nav-link">← Back to Dashboard</a>
+    </div>
   </header>
 
   <div class="main-container">
@@ -398,15 +369,7 @@
       <a href="#" class="btn-primary">+ New Assignment</a>
     </div>
 
-    <!-- Alert Box -->
-    <div class="alert-box" id="alertBox">
-      <div class="alert-icon">⚠️</div>
-      <div class="alert-content">
-        <div class="alert-title">Action Required</div>
-        <div class="alert-text">2 assignments pending grading. Complete grading by Nov 10 for timely feedback.</div>
-      </div>
-      <button class="alert-close" onclick="closeAlert()">x</button>
-    </div>
+    
 
     <!-- Stats Grid -->
     <div class="stats-grid">
@@ -434,7 +397,6 @@
         <a href="#" class="tab active">All Assignments</a>
         <a href="#" class="tab">Gradebook</a>
         <a href="#" class="tab">Analytics</a>
-        <a href="#" class="tab">Settings</a>
       </div>
 
       <!-- Filter Bar -->
@@ -561,10 +523,10 @@
     
     </div>
 
+  </div>
+
   <script>
-    function closeAlert() {
-      document.getElementById('alertBox').classList.add('alert-hidden');
-    }
+    
     // Get filter elements
     const statusFilter = document.getElementById('statusFilter');
     const typeFilter = document.getElementById('typeFilter');
