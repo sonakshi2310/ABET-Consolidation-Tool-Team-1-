@@ -258,13 +258,25 @@
     .action-link:hover {
       text-decoration: underline;
     }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      opacity: 0.3;
+    }
   </style>
 </head>
 <body>
 
   <header class="site-header">
     <div class="site-title">ABET Tools - Roster Management</div>
-    <a href="roster-dashboard.html" class="nav-link">← Back to Dashboard</a>
+    <a href="tool1.html" class="nav-link">← Back to Dashboard</a>
   </header>
 
   <div class="main-container">
@@ -272,20 +284,33 @@
     <div class="page-header">
       <div class="page-title">
         <h1>Student Roster Management</h1>
-        <p>CSE 445: Software Security • Fall 2024</p>
+        <p id="classInfo">CSE 445: Software Security • Fall 2024</p>
       </div>
     </div>
 
     <!-- Upload Section -->
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Upload Roster</h2>
+        <h2 class="card-title">Upload or Download Roster</h2>
       </div>
       <div class="card-body">
+        
+
+        <!-- Action Buttons -->
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="downloadFromCanvas()">
+            Download from Canvas
+          </button>
+          <button class="btn btn-secondary" onclick="document.getElementById('rosterFile').click()">
+             Upload CSV File
+          </button>
+          <button class="btn btn-secondary" onclick="clearRoster()" style="margin-left: auto;">
+            Clear Roster
+          </button>
+        </div>
 
         <!-- File Upload Area -->
         <div class="file-upload" id="dropZone" onclick="document.getElementById('rosterFile').click()">
-          <div class="file-upload-icon">📄</div>
           <div class="file-upload-text">Click to upload or drag and drop</div>
           <div class="file-upload-hint">Accepts .csv files from Canvas export (Name, ID, Program will be extracted)</div>
         </div>
@@ -298,26 +323,26 @@
     <div class="stats-mini" id="rosterStats">
       <div class="stat-mini">
         <div class="stat-mini-label">Total Students</div>
-        <div class="stat-mini-value" id="totalStudents">48</div>
+        <div class="stat-mini-value" id="totalStudents">0</div>
       </div>
       <div class="stat-mini">
         <div class="stat-mini-label">Unique Programs</div>
-        <div class="stat-mini-value" id="totalPrograms">3</div>
+        <div class="stat-mini-value" id="totalPrograms">0</div>
       </div>
       <div class="stat-mini">
         <div class="stat-mini-label">Last Updated</div>
-        <div class="stat-mini-value" style="font-size: 1rem;">Today</div>
+        <div class="stat-mini-value" style="font-size: 1rem;" id="lastUpdated">Never</div>
       </div>
     </div>
 
     <!-- Roster Table -->
     <div class="card">
       <div class="card-header">
-        <h2 class="card-title">Current Roster (48 Students)</h2>
+        <h2 class="card-title" id="rosterTableTitle">Current Roster (0 Students)</h2>
       </div>
       <div class="card-body" style="padding: 0;">
         <div class="table-responsive">
-          <table>
+          <table id="rosterTable">
             <thead>
               <tr>
                 <th>Student Name</th>
@@ -329,59 +354,8 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Smith, John</strong></td>
-                <td>1234567890</td>
-                <td>Computer Science BS</td>
-                <td>jsmith@asu.edu</td>
-                <td>
-                  <a href="#" class="action-link">Edit</a>
-                  <a href="#" class="action-link">Remove</a>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Johnson, Emily</strong></td>
-                <td>1234567891</td>
-                <td>Software Engineering BS</td>
-                <td>ejohnson@asu.edu</td>
-                <td>
-                  <a href="#" class="action-link">Edit</a>
-                  <a href="#" class="action-link">Remove</a>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Chen, Michael</strong></td>
-                <td>1234567892</td>
-                <td>Computer Science BS</td>
-                <td>mchen@asu.edu</td>
-                <td>
-                  <a href="#" class="action-link">Edit</a>
-                  <a href="#" class="action-link">Remove</a>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Garcia, Maria</strong></td>
-                <td>1234567893</td>
-                <td>Computer Systems Engineering BS</td>
-                <td>mgarcia@asu.edu</td>
-                <td>
-                  <a href="#" class="action-link">Edit</a>
-                  <a href="#" class="action-link">Remove</a>
-                </td>
-              </tr>
-              <tr>
-                <td><strong>Williams, David</strong></td>
-                <td>1234567894</td>
-                <td>Software Engineering BS</td>
-                <td>dwilliams@asu.edu</td>
-                <td>
-                  <a href="#" class="action-link">Edit</a>
-                  <a href="#" class="action-link">Remove</a>
-                </td>
-              </tr>
-              <tr>
-                <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-light);">
-                  <em>+ 43 more students</em>
-                  <a href="#" style="color: var(--asu-maroon); margin-left: 15px;">View All</a>
+                <td colspan="5" class="empty-state"> 
+                  <div>No roster data loaded. Upload a CSV file or download from Canvas to get started.</div>
                 </td>
               </tr>
             </tbody>
@@ -390,19 +364,40 @@
       </div>
     </div>
 
-    <!-- Export Options -->
-    <div style="margin-top: 20px; text-align: right;">
-      <button class="btn btn-secondary" onclick="exportRoster()">
-        <span class="btn-icon"></span> Export Roster
-      </button>
-      <a href="roster-upload.html" class="btn btn-primary">
-        Continue to Assignments →
+      <a href="assignments-functional.html" class="btn btn-primary">
+        Continue to Assignments
       </a>
     </div>
 
   </div>
 
   <script>
+    // Global variables
+    let rosterData = [];
+
+    // Load saved roster on page load
+    window.addEventListener('DOMContentLoaded', function() {
+      loadSelectedClass();
+      loadSavedRoster();
+    });
+
+    // Load selected class information from localStorage
+    function loadSelectedClass() {
+      const selectedClassStr = localStorage.getItem('selectedClass');
+      if (selectedClassStr) {
+        try {
+          const classInfo = JSON.parse(selectedClassStr);
+          // Update the page header with selected class info
+          const classInfoElement = document.getElementById('classInfo');
+          if (classInfoElement && classInfo.name && classInfo.semester) {
+            classInfoElement.textContent = classInfo.name + ' • ' + classInfo.semester;
+          }
+        } catch (error) {
+          console.error('Error loading selected class:', error);
+        }
+      }
+    }
+
     // Drag and drop functionality
     const dropZone = document.getElementById('dropZone');
     const fileInput = document.getElementById('rosterFile');
@@ -441,12 +436,262 @@
 
     function handleFileUpload(event) {
       const file = event.target.files[0];
-      if (file) {
-        alert('File uploaded: ' + file.name + '\n\nProcessing roster data...\n✓ Extracted Name\n✓ Extracted Student ID\n✓ Extracted Program Title\n\nRoster updated successfully!');
-        
-        document.getElementById('totalStudents').textContent = '48';
-        document.getElementById('totalPrograms').textContent = '3';
+      if (!file) return;
+
+      if (!file.name.endsWith('.csv')) {
+        alert('Please upload a CSV file');
+        return;
       }
+
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const text = e.target.result;
+        parseCSV(text);
+      };
+
+      reader.onerror = function() {
+        alert('Error reading file. Please try again.');
+      };
+
+      reader.readAsText(file);
+    }
+
+    function parseCSV(text) {
+      try {
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length < 2) {
+          alert('CSV file appears to be empty');
+          return;
+        }
+
+        // Get headers
+        const headers = parseCSVLine(lines[0]);
+        
+        // Find column indices
+        const nameIndex = findColumnIndex(headers, ['student', 'name', 'student name']);
+        const idIndex = findColumnIndex(headers, ['id', 'student id', 'sis user id', 'sis login id']);
+        const emailIndex = findColumnIndex(headers, ['email', 'sis login id', 'login id']);
+        const programIndex = findColumnIndex(headers, ['program', 'major', 'program title']);
+
+        if (nameIndex === -1 || idIndex === -1) {
+          alert('Could not find required columns (Student Name and ID).\n\nPlease ensure your CSV has columns for:\n• Student Name\n• Student ID\n• Program (optional)\n• Email (optional)');
+          return;
+        }
+
+        // Parse data rows
+        rosterData = [];
+        for (let i = 1; i < lines.length; i++) {
+          const values = parseCSVLine(lines[i]);
+          if (values.length > 1) {
+            const student = {
+              name: values[nameIndex] || '',
+              id: values[idIndex] || '',
+              program: programIndex !== -1 ? (values[programIndex] || 'Not specified') : 'Not specified',
+              email: emailIndex !== -1 ? (values[emailIndex] || generateEmail(values[nameIndex])) : generateEmail(values[nameIndex])
+            };
+            
+            // Only add if we have at least name and ID
+            if (student.name && student.id) {
+              rosterData.push(student);
+            }
+          }
+        }
+
+        if (rosterData.length === 0) {
+          alert('No valid student records found in CSV file');
+          return;
+        }
+
+        // Save to localStorage
+        localStorage.setItem('rosterData', JSON.stringify(rosterData));
+        localStorage.setItem('rosterLastUpdated', new Date().toLocaleString());
+        
+        // Update display
+        updateRosterDisplay();
+        
+        alert('Roster uploaded successfully!\n\n' +
+              '• Students loaded: ' + rosterData.length + '\n' +
+              '• Data extracted: Name, ID, Program, Email\n\n' +
+              'Roster will be saved until you upload a new file.');
+
+      } catch (error) {
+        console.error('Error parsing CSV:', error);
+        alert('Error parsing CSV file. Please check the file format.');
+      }
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        const nextChar = line[i + 1];
+
+        if (char === '"') {
+          if (inQuotes && nextChar === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function findColumnIndex(headers, possibleNames) {
+      for (let name of possibleNames) {
+        const index = headers.findIndex(h => 
+          h.toLowerCase().includes(name.toLowerCase())
+        );
+        if (index !== -1) return index;
+      }
+      return -1;
+    }
+
+    function generateEmail(name) {
+      if (!name) return 'unknown@asu.edu';
+      const parts = name.split(/[\s,]+/).filter(p => p);
+      if (parts.length >= 2) {
+        const first = parts[0].toLowerCase();
+        const last = parts[parts.length - 1].toLowerCase();
+        return first.charAt(0) + last + '@asu.edu';
+      }
+      return name.toLowerCase().replace(/\s/g, '') + '@asu.edu';
+    }
+
+    function updateRosterDisplay() {
+      // Update statistics
+      const uniquePrograms = [...new Set(rosterData.map(s => s.program))].length;
+      document.getElementById('totalStudents').textContent = rosterData.length;
+      document.getElementById('totalPrograms').textContent = uniquePrograms;
+      
+      const lastUpdated = localStorage.getItem('rosterLastUpdated') || 'Just now';
+      document.getElementById('lastUpdated').textContent = lastUpdated.split(',')[0]; // Just show date
+
+      // Update title
+      document.getElementById('rosterTableTitle').textContent = `Current Roster (${rosterData.length} Students)`;
+
+      // Update table
+      const tbody = document.querySelector('#rosterTable tbody');
+      tbody.innerHTML = '';
+
+      if (rosterData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="empty-state">
+              <div class="empty-state-icon"></div>
+              <div>No roster data loaded. Upload a CSV file or download from Canvas to get started.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      rosterData.forEach((student, index) => {
+        const row = tbody.insertRow();
+        row.innerHTML = `
+          <td><strong>${escapeHtml(student.name)}</strong></td>
+          <td>${escapeHtml(student.id)}</td>
+          <td>${escapeHtml(student.program)}</td>
+          <td>${escapeHtml(student.email)}</td>
+          <td>
+            <a href="#" class="action-link" onclick="editStudent(${index}); return false;">Edit</a>
+            <a href="#" class="action-link" onclick="removeStudent(${index}); return false;">Remove</a>
+          </td>
+        `;
+      });
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function loadSavedRoster() {
+      const saved = localStorage.getItem('rosterData');
+      if (saved) {
+        try {
+          rosterData = JSON.parse(saved);
+          updateRosterDisplay();
+        } catch (error) {
+          console.error('Error loading saved roster:', error);
+        }
+      }
+    }
+
+    function editStudent(index) {
+      const student = rosterData[index];
+      const newName = prompt('Edit Student Name:', student.name);
+      
+      if (newName === null) return; // User cancelled
+      
+      const newId = prompt('Edit Student ID:', student.id);
+      if (newId === null) return;
+      
+      const newProgram = prompt('Edit Program:', student.program);
+      if (newProgram === null) return;
+      
+      rosterData[index].name = newName || student.name;
+      rosterData[index].id = newId || student.id;
+      rosterData[index].program = newProgram || student.program;
+      
+      localStorage.setItem('rosterData', JSON.stringify(rosterData));
+      localStorage.setItem('rosterLastUpdated', new Date().toLocaleString());
+      updateRosterDisplay();
+    }
+
+    function removeStudent(index) {
+      if (confirm('Remove ' + rosterData[index].name + ' from roster?')) {
+        rosterData.splice(index, 1);
+        localStorage.setItem('rosterData', JSON.stringify(rosterData));
+        localStorage.setItem('rosterLastUpdated', new Date().toLocaleString());
+        updateRosterDisplay();
+      }
+    }
+
+    function clearRoster() {
+      if (confirm('Clear entire roster?\n\nThis will remove all ' + rosterData.length + ' students from the roster.')) {
+        rosterData = [];
+        localStorage.removeItem('rosterData');
+        localStorage.removeItem('rosterLastUpdated');
+        updateRosterDisplay();
+        alert('Roster cleared successfully!');
+      }
+    }
+
+    function downloadFromCanvas() {
+      // Simulate downloading from Canvas with sample data
+      const sampleData = [
+        { name: 'Smith, John', id: '1234567890', program: 'Computer Science BS', email: 'jsmith@asu.edu' },
+        { name: 'Johnson, Emily', id: '1234567891', program: 'Software Engineering BS', email: 'ejohnson@asu.edu' },
+        { name: 'Chen, Michael', id: '1234567892', program: 'Computer Science BS', email: 'mchen@asu.edu' },
+        { name: 'Garcia, Maria', id: '1234567893', program: 'Computer Systems Engineering BS', email: 'mgarcia@asu.edu' },
+        { name: 'Williams, David', id: '1234567894', program: 'Software Engineering BS', email: 'dwilliams@asu.edu' },
+        { name: 'Brown, Sarah', id: '1234567895', program: 'Computer Science BS', email: 'sbrown@asu.edu' },
+        { name: 'Davis, James', id: '1234567896', program: 'Software Engineering BS', email: 'jdavis@asu.edu' },
+        { name: 'Martinez, Lisa', id: '1234567897', program: 'Computer Systems Engineering BS', email: 'lmartinez@asu.edu' }
+      ];
+
+      rosterData = sampleData;
+      localStorage.setItem('rosterData', JSON.stringify(rosterData));
+      localStorage.setItem('rosterLastUpdated', new Date().toLocaleString());
+      updateRosterDisplay();
+      
+      alert('Roster downloaded from Canvas!\n\n' +
+            '• Students loaded: ' + rosterData.length + '\n' +
+            '• Data extracted: Name, ID, Program, Email\n\n' +
+            'Roster saved successfully!');
     }
 
   </script>
